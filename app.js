@@ -31,7 +31,7 @@ app.use(session({
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: true }
+    // cookie: { secure: true }
 }));
 
 // Express Messages middleware
@@ -44,8 +44,10 @@ app.use(function (req, res, next) {
 // Set routes
 var pages = require('./routes/pages');
 var adminPages = require('./routes/adminPages');
+var adminCategories = require('./routes/adminCategories');
 
 app.use('/admin/pages', adminPages);
+app.use('/admin/categories', adminCategories);
 app.use('/', pages);
 
 // Start the server

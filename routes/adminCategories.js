@@ -3,96 +3,64 @@ var router = express.Router();
 const { check, validationResult } = require('express-validator');
 
 // Get Page model
-var Page = require('../models/page');
+var Category = require('../models/category');
 
 /*
  * GET pages index
  */
 router.get('/', (req, res) => {
-    Page.find({}).sort({ sorting: 1}).exec((err, pages) => {
-        res.render('admin/pages', {
-            pages: pages
+    Category.find((err, categories) => {
+        if (err) return console.log(err);
+        res.render('admin/categories', {
+            categories: categories
         });
     });
 });
 
 /*
- * POST reorder pages
+ * GET add category
  */
-router.post('/reorder-pages', (req, res) => {
-    var ids = req.body.id;
-    var count = 0;
-    for (var i = 0; i < ids.length; i++) {
-        var id = ids[i];
-        count++;
-        (function(count) {
-            Page.findById(id, (err, page) => {
-                page.sorting = count;
-                page.save(err => {
-                    if (err) return console.log(err);
-                });
-            });
-        })(count);
-    }
-});
-
-/*
- * GET add page
- */
-router.get('/add-page', (req, res) => {
+router.get('/add-category', (req, res) => {
     var title = "";
-    var slug = "";
-    var content = "";
-    res.render('admin/addPage', {
-        title,
-        slug,
-        content
+    res.render('admin/addCategory', {
+        title
     });
 });
 
 /*
- * POST add page
+ * POST add category
  */
-router.post('/add-page', 
+router.post('/add-category', 
     [
-        check('title', 'Title must have a value').not().isEmpty(),
-        check('content', 'Content must have a value').not().isEmpty(),
+        check('title', 'Title must have a value').not().isEmpty()
     ],
     async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            res.render('admin/addPage', {
+            res.render('admin/addCategory', {
                 errors: errors.array(),
-                title,
-                slug,
-                content
+                title
             });
         } else {
             var title = req.body.title;
-            var slug = req.body.slug.replace(/\s+/g, '-').toLowerCase();
-            var content = req.body.content;
-
-            if (slug === "") slug = title.replace(/\s+/g, '-').toLowerCase();
-            Page.findOne({ slug }, (err, page) => {
-                if (page) {
-                    req.flash('danger', 'Page slug exists, choose another');
-                    res.render('admin/addPage', {
+            slug = title.replace(/\s+/g, '-').toLowerCase();
+            Category.findOne({ slug }, (err, category) => {
+                if (category) {
+                    req.flash('danger', 'Category slug exists, choose another');
+                    res.render('admin/addCategory', {
                         title,
-                        slug,
-                        content
+                        slug
                     });
                 } else {
-                    var page = new Page({
+                    var category = new Category({
                         title,
-                        slug,
-                        content,
-                        sorting: 100
+                        slug
                     });
-                    page.save(err => {
+                    category.save(err => {
                         if (err) return console.log(err);
-                        req.flash('success', 'Page added');
-                        res.redirect('/admin/pages');
+                        req.flash('success', 'Category added');
+                        res.redirect('/admin/categories');
                     });
                 }
             });
